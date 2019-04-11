@@ -8,8 +8,8 @@ end
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails', '~> 5.1.6', '>= 5.1.6.1'
-# Use sqlite3 as the database for Active Record
-gem 'sqlite3'
+# Use postgresql as the database for Active Record
+gem 'pg', '~> 0.18.4'
 # Use Puma as the app server
 gem 'puma', '~> 3.7'
 # Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
@@ -32,6 +32,7 @@ group :development, :test do
 end
 
 group :test do
+  gem 'shoulda-matchers', '~> 3.1'
   gem "factory_bot_rails", "~> 4.0"
   gem 'faker'
   gem 'database_cleaner'
