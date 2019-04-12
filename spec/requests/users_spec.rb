@@ -3,15 +3,23 @@ require "rails_helper"
 RSpec.describe "Users API", type: :request do
   let!(:user_1) { create(:user, name: "user_1") }
   let!(:user_2) { create(:user, name: "user_2") }
-
+  let!(:payment_account_1){ create(:payment_account, balance: 150, user_id: user_1.id) }
+  let!(:payment_account_2){ create(:payment_account, balance: 100, user_id: user_2.id) }
   describe "POST /user/{id}/payment" do
-    # user_1 and user_2 are friends
     before { user_1.friends << user_2 } 
 
     context "with valid params" do
-      before { post "/user/#{user_1.id}/payment", params: { friend_id: user_2.id, amount: 100, description: "Yeah" } }
-      it "returns status code 200 with empty body" do
+      it "returns status code 200 with empty body and modify the balance" do
+        post "/user/#{user_1.id}/payment", params: { friend_id: user_2.id, amount: 100, description: "Yeah" }
         expect(response).to have_http_status(200)
+        expect(user_1.payment_account.balance).to eq 50
+        expect(user_2.payment_account.balance).to eq 200
+      end
+
+      it "transfer the needed money from an external balance if balance < 0" do
+        post "/user/#{user_1.id}/payment", params: { friend_id: user_2.id, amount: 200, description: "Yeah" }
+        expect(user_1.payment_account.balance).to eq 0
+        expect(user_2.payment_account.balance).to eq 300
       end
     end
 
