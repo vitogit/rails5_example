@@ -5,7 +5,7 @@ class UsersController < ApplicationController
                    receiver_id: payment_params[:friend_id], 
                    description: payment_params[:description])
     if payment.save
-      json_response({ message: 'Success' })
+      json_response({})
     else
       json_response({ message: payment.errors }, 400)
     end
