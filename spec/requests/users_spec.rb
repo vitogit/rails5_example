@@ -44,7 +44,7 @@ RSpec.describe "Users API", type: :request do
     let!(:payment_account) { create(:payment_account, user_id: user_1.id, balance: 1000) }
 
     context "with valid params" do
-      before { post "/user/#{user_1.id}/balance"}
+      before { get "/user/#{user_1.id}/balance"}
       it "returns status code 200 with empty body" do
         expect(response).to have_http_status(200)
       end
@@ -54,7 +54,7 @@ RSpec.describe "Users API", type: :request do
     end
 
     context "with invalid user" do
-      before { post "/user/#{user_1.id+10}/balance" }
+      before { get "/user/#{user_1.id+10}/balance" }
 
       it "returns status code 400" do
         expect(response).to have_http_status(400)
@@ -65,5 +65,53 @@ RSpec.describe "Users API", type: :request do
       end
     end
   end
+  
+  describe "Get /user/{id}/feed" do
+    before { user_1.friends << user_2 } 
+    before { user_2.friends << user_1 } 
 
+    let!(:feed_list) { create_list(:payment, 12, sender_id: user_1.id, receiver_id: user_2.id, amount: 1, description: 'test description') }
+    context "with valid params" do
+      before { get "/user/#{user_1.id}/feed"}
+      it "returns status code 200 with empty body" do
+        expect(response).to have_http_status(200)
+      end
+      it "returns 10 payments as the first page" do
+        parsed_response = JSON.parse(response.body)
+        feed = parsed_response['feed']
+        expect(feed.size).to eq 10
+      end
+
+      it "first feed item has the correct format" do
+        parsed_response = JSON.parse(response.body)
+        feed = parsed_response['feed']
+        first_feed = feed.first
+        expect(first_feed['title']).to eq "#{user_1.name} paid #{user_2.name} on #{feed_list.last.created_at}. test description"
+      end
+    end
+
+    context "with page param" do
+      before { get "/user/#{user_1.id}/feed", params: { page: 2} }
+      
+      it "returns 2 payments in the feed as the second page" do
+        parsed_response = JSON.parse(response.body)
+        feed = parsed_response['feed']
+        expect(feed.size).to eq 2
+      end
+    end
+
+    context "include user and other user payments in the feed" do
+      let!(:single_payment) { create_list(:payment, 5, sender_id: user_2.id, receiver_id: user_1.id, amount: 1, description: 'test description') }
+      before do
+        get "/user/#{user_1.id}/feed", params: { page: 2}
+      end
+
+      it "returns payments from current and other users" do
+        parsed_response = JSON.parse(response.body)
+        feed = parsed_response['feed']
+        expect(feed.size).to eq 7
+      end
+    end
+
+  end
 end

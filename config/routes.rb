@@ -3,7 +3,8 @@ Rails.application.routes.draw do
   resources :user , only: [] do
     member do 
       post 'payment', to: 'users#payment'
-      post 'balance', to: 'users#balance'
+      get 'balance', to: 'users#balance'
+      get 'feed', to: 'users#feed'
     end 
   end
 

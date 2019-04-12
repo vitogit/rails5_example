@@ -21,6 +21,17 @@ class UsersController < ApplicationController
     end
   end
 
+  def feed
+    user = User.find(feed_params[:id])
+    page = feed_params[:page]
+    feed = user.feed(page)
+    if feed
+      json_response({ feed: feed })
+    else
+      json_response({ message: 'Invalid params' }, 400)
+    end
+  end
+
   private
   # whitelist params
   def payment_params
