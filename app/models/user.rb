@@ -9,7 +9,7 @@ class User < ApplicationRecord
   def feed(page = 1, per_page = 10)
     feed = []
     feed_ids = self.friends.pluck(:id) + [self.id]
-    payments = Payment.where(sender_id: feed_ids).order(:created_at)
+    payments = Payment.where(sender_id: feed_ids).order(created_at: :desc)
     payments.page(page).per(per_page).each do |payment|
       sender = payment.sender.name
       receiver = payment.receiver.name
